@@ -176,9 +176,9 @@ class Maxout(Brick):
         output_dim = last_dim // self.num_pieces
         new_shape = ([input_.shape[i] for i in range(input_.ndim - 1)] +
                      [output_dim, self.num_pieces])
-        output = tensor.max(input_.reshape(new_shape, ndim=input_.ndim + 1),
-                            axis=input_.ndim)
-        return output
+        return tensor.max(
+            input_.reshape(new_shape, ndim=input_.ndim + 1), axis=input_.ndim
+        )
 
 
 class LinearMaxout(Initializable, Feedforward):
@@ -242,8 +242,7 @@ class LinearMaxout(Initializable, Feedforward):
 
         """
         pre_activation = self.linear.apply(input_)
-        output = self.maxout.apply(pre_activation)
-        return output
+        return self.maxout.apply(pre_activation)
 
 
 class Identity(Activation):

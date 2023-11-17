@@ -23,7 +23,7 @@ from .interfaces import RNGMixin
 def _add_batch_axis(var):
     """Prepend a singleton axis to a TensorVariable and name it."""
     new_var = new_var = tensor.shape_padleft(var)
-    new_var.name = 'shape_padleft({})'.format(var.name)
+    new_var.name = f'shape_padleft({var.name})'
     return new_var
 
 
@@ -174,12 +174,14 @@ class BatchNormalization(RNGMixin, Feedforward):
                                    [self, application_call])
         shift = _add_batch_axis(self.shift)
         scale = _add_batch_axis(self.scale)
-        # Heavy lifting is done by the Theano utility function.
-        normalized = bn.batch_normalization(input_, scale, shift, mean, stdev,
-                                            mode=('low_mem'
-                                                  if self.conserve_memory
-                                                  else 'high_mem'))
-        return normalized
+        return bn.batch_normalization(
+            input_,
+            scale,
+            shift,
+            mean,
+            stdev,
+            mode=('low_mem' if self.conserve_memory else 'high_mem'),
+        )
 
     def __enter__(self):
         self._training_mode.append(True)
@@ -393,11 +395,17 @@ class BatchNormalizedMLP(MLP):
         self.learn_shift = kwargs.pop('learn_shift', True)
 
         activations = [
-            Sequence([
-                (BatchNormalization(conserve_memory=self._conserve_memory)
-                 .apply),
-                act.apply
-            ], name='batch_norm_activation_{}'.format(i))
+            Sequence(
+                [
+                    (
+                        BatchNormalization(
+                            conserve_memory=self._conserve_memory
+                        ).apply
+                    ),
+                    act.apply,
+                ],
+                name=f'batch_norm_activation_{i}',
+            )
             for i, act in enumerate(activations)
         ]
         # Batch normalization bricks incorporate a bias, so there's no
@@ -407,10 +415,10 @@ class BatchNormalizedMLP(MLP):
                                                  **kwargs)
 
     def _nested_brick_property_getter(self, property_name):
-        return getattr(self, '_' + property_name)
+        return getattr(self, f'_{property_name}')
 
     def _nested_brick_property_setter(self, value, property_name):
-        setattr(self, '_' + property_name, value)
+        setattr(self, f'_{property_name}', value)
         for act in self.activations:
             assert isinstance(act.children[0], BatchNormalization)
             setattr(act.children[0], property_name, value)

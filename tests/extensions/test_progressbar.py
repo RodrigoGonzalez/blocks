@@ -37,15 +37,12 @@ def setup_mainloop(extension, iteration_scheme=None):
     algorithm = GradientDescent(cost=cost, parameters=[W],
                                 step_rule=Scale(1e-3))
 
-    main_loop = MainLoop(
+    return MainLoop(
         model=None,
         data_stream=data_stream,
         algorithm=algorithm,
-        extensions=[
-            FinishAfter(after_n_epochs=1),
-            extension])
-
-    return main_loop
+        extensions=[FinishAfter(after_n_epochs=1), extension],
+    )
 
 
 def test_progressbar():

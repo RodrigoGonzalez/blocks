@@ -87,9 +87,7 @@ class Checkpoint(SimpleExtension):
             if self.parameters is None:
                 if hasattr(self.main_loop, 'model'):
                     self.parameters = self.main_loop.model.parameters
-            object_ = None
-            if self.save_main_loop:
-                object_ = self.main_loop
+            object_ = self.main_loop if self.save_main_loop else None
             secure_dump(object_, path,
                         dump_function=dump_and_add_to_dump,
                         parameters=self.parameters,
@@ -147,17 +145,17 @@ class Load(SimpleExtension):
             main_loop.model.set_parameter_values(load_parameters(source))
             if self.load_iteration_state or self.load_log:
                 loaded_main_loop = load(source)
-                if self.load_log:
-                    main_loop.log = loaded_main_loop.log
-                if self.load_iteration_state:
-                    main_loop.iteration_state = \
+            if self.load_log:
+                main_loop.log = loaded_main_loop.log
+            if self.load_iteration_state:
+                main_loop.iteration_state = \
                         loaded_main_loop.iteration_state
 
     def do(self, *args, **kwargs):
         if not os.path.exists(self.path):
             logger.warning("No dump found")
             return
-        logger.info("loading model from {}".format(self.path))
+        logger.info(f"loading model from {self.path}")
         try:
             self.load_to(self.main_loop)
             self.main_loop.log.current_row[LOADED_FROM] = self.path

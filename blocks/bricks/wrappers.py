@@ -69,7 +69,7 @@ class BrickWrapper(object):
     """
     def __call__(self, mcs, name, bases, namespace):
         """Calls :meth:`wrap` for all applications of the base class."""
-        if not len(bases) == 1:
+        if len(bases) != 1:
             raise ValueError("can only wrap one class")
         base, = bases
         for attribute in base.__dict__.values():
@@ -167,7 +167,7 @@ class WithExtraDims(BrickWrapper):
             _with_extra_dims_application_prefix,
             wrapped.brick.__name__, wrapped.application_name)
         apply_delegate = apply.delegate(
-            rename_function(apply_delegate,
-                            wrapped.application_name + "_delegate"))
+            rename_function(apply_delegate, f"{wrapped.application_name}_delegate")
+        )
         namespace[wrapped.application_name] = apply
-        namespace[wrapped.application_name + "_delegate"] = apply_delegate
+        namespace[f"{wrapped.application_name}_delegate"] = apply_delegate

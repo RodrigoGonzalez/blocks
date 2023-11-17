@@ -58,8 +58,7 @@ class BeamSearch(object):
         if not isinstance(self.generator, BaseSequenceGenerator):
             raise ValueError
         self.generate_call = get_application_call(samples)
-        if (not self.generate_call.application ==
-                self.generator.generate):
+        if self.generate_call.application != self.generator.generate:
             raise ValueError
         self.inner_cg = ComputationGraph(self.generate_call.inner_outputs)
 
@@ -78,10 +77,9 @@ class BeamSearch(object):
         # in 'generate'
         self.input_state_names = []
         for name in self.generator.generate.states:
-            var = VariableFilter(
-                bricks=[self.generator], name=name,
-                roles=[INPUT])(self.inner_cg)
-            if var:
+            if var := VariableFilter(
+                bricks=[self.generator], name=name, roles=[INPUT]
+            )(self.inner_cg):
                 self.input_state_names.append(name)
                 self.input_states.append(var[0])
 
@@ -215,10 +213,7 @@ class BeamSearch(object):
         Tuple of ((row numbers, column numbers), values).
 
         """
-        if only_first_row:
-            flatten = matrix[:1, :].flatten()
-        else:
-            flatten = matrix.flatten()
+        flatten = matrix[:1, :].flatten() if only_first_row else matrix.flatten()
         args = numpy.argpartition(flatten, k)[:k]
         args = args[numpy.argsort(flatten[args])]
         return numpy.unravel_index(args, matrix.shape), flatten[args]
@@ -313,9 +308,7 @@ class BeamSearch(object):
         all_masks = all_masks[:-1]
         all_costs = all_costs[1:] - all_costs[:-1]
         result = all_outputs, all_masks, all_costs
-        if as_arrays:
-            return result
-        return self.result_to_lists(result)
+        return result if as_arrays else self.result_to_lists(result)
 
     @staticmethod
     def result_to_lists(result):

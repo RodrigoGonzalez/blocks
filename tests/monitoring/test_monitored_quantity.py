@@ -21,8 +21,7 @@ class CrossEntropy(MonitoredQuantity):
         self.examples_seen += 1
 
     def get_aggregated_value(self):
-        res = self.total_cross_entropy / self.examples_seen
-        return res
+        return self.total_cross_entropy / self.examples_seen
 
 
 def test_dataset_evaluators():

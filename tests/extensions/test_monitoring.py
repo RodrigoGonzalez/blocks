@@ -35,16 +35,17 @@ def test_monitoring_extension__record_name():
     assert monitor._record_name(test_name) == test_name
 
     monitor = MonitoringExtension(prefix="abc")
-    assert (monitor._record_name(test_name) ==
-            "abc" + monitor.SEPARATOR + test_name)
+    assert monitor._record_name(test_name) == f"abc{monitor.SEPARATOR}{test_name}"
 
     monitor = MonitoringExtension(suffix="abc")
     assert (monitor._record_name(test_name) ==
             test_name + monitor.SEPARATOR + "abc")
 
     monitor = MonitoringExtension(prefix="abc", suffix="def")
-    assert (monitor._record_name(test_name) ==
-            "abc" + monitor.SEPARATOR + test_name + monitor.SEPARATOR + "def")
+    assert (
+        monitor._record_name(test_name)
+        == f"abc{monitor.SEPARATOR}{test_name}{monitor.SEPARATOR}def"
+    )
 
     try:
         monitor = MonitoringExtension(prefix="abc", suffix="def")
@@ -109,12 +110,21 @@ def test_training_data_monitoring():
                         main_loop.log[i + 1]['train1_cost'])
     assert_allclose(
         main_loop.log[n_batches]['train2_cost'],
-        sum([main_loop.log[i]['true_cost']
-             for i in range(n_batches)]) / n_batches)
+        (
+            sum(main_loop.log[i]['true_cost'] for i in range(n_batches))
+            / n_batches
+        ),
+    )
     assert_allclose(
         main_loop.log[n_batches]['train2_W_sum'],
-        sum([main_loop.log[i]['train1_W_sum']
-             for i in range(1, n_batches + 1)]) / n_batches)
+        (
+            sum(
+                main_loop.log[i]['train1_W_sum']
+                for i in range(1, n_batches + 1)
+            )
+            / n_batches
+        ),
+    )
 
     # Check monitoring of non-Theano quantites
     for i in range(n_batches):

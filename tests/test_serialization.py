@@ -63,8 +63,7 @@ def test_serialization():
         dump(mlp, f, parameters=[mlp.children[0].W, mlp.children[1].W])
     with open(f.name, 'rb') as ff:
         numpy_data = load_parameters(ff)
-    assert set(numpy_data.keys()) == \
-        set(['/mlp/linear_0.W', '/mlp/linear_1.W'])
+    assert set(numpy_data.keys()) == {'/mlp/linear_0.W', '/mlp/linear_1.W'}
     assert_allclose(numpy_data['/mlp/linear_0.W'], numpy.ones((10, 10)))
     assert numpy_data['/mlp/linear_0.W'].dtype == theano.config.floatX
 
@@ -81,14 +80,13 @@ def test_serialization():
         dump(mlp, f, parameters=[mlp.children[0].W, mlp.children[1].W])
     with open(f.name, 'rb') as ff:
         numpy_data = load_parameters(ff)
-    assert set(numpy_data.keys()) == \
-        set(['/mlp/linear.W', '/mlp/linear.W_2'])
+    assert set(numpy_data.keys()) == {'/mlp/linear.W', '/mlp/linear.W_2'}
 
     # Check when we don't dump the main object.
     with NamedTemporaryFile(delete=False) as f:
         dump(None, f, parameters=[mlp.children[0].W, mlp.children[1].W])
     with tarfile.open(f.name, 'r') as tarball:
-        assert set(tarball.getnames()) == set(['_parameters'])
+        assert set(tarball.getnames()) == {'_parameters'}
 
 
 def test_add_to_dump():
@@ -112,8 +110,7 @@ def test_add_to_dump():
                     parameters=[mlp.children[0].W])
         add_to_dump(mlp.children[1], ff, 'child_1')
     with tarfile.open(f.name, 'r') as tarball:
-        assert set(tarball.getnames()) == set(['_pkl', '_parameters',
-                                               'child_0', 'child_1'])
+        assert set(tarball.getnames()) == {'_pkl', '_parameters', 'child_0', 'child_1'}
 
     # Ensure that we can load any object from the tarball.
     with open(f.name, 'rb') as ff:
@@ -123,7 +120,7 @@ def test_add_to_dump():
                         numpy.ones((10, 10)))
         assert_allclose(saved_children_1.W.get_value(),
                         numpy.ones((10, 10)) * 2)
-    
+
     # Check the error if using a reserved name.
     with open(f.name, 'rb+') as ff:
         assert_raises(ValueError, add_to_dump, *[mlp.children[0], ff, '_pkl'])

@@ -21,11 +21,7 @@ def test_application_graph_auxiliary_vars():
     brick = TestBrick(0)
     Y = brick.access_application_call(X)
     graph = ComputationGraph(outputs=[Y])
-    test_val_found = False
-    for var in graph.variables:
-        if var.name == 'test_val':
-            test_val_found = True
-            break
+    test_val_found = any(var.name == 'test_val' for var in graph.variables)
     assert test_val_found
 
 
@@ -49,7 +45,7 @@ def test_computation_graph():
 
     cg2 = cg.replace({z: r})
     assert set(cg2.inputs) == {r}
-    assert set([v.name for v in cg2.outputs]) == {'a', 'b'}
+    assert {v.name for v in cg2.outputs} == {'a', 'b'}
 
     W = theano.shared(numpy.zeros((3, 3),
                                   dtype=theano.config.floatX))

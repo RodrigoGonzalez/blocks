@@ -112,9 +112,9 @@ class VariableFilter(object):
                 for brick in bricks):
             raise ValueError('`bricks` should be a list of Bricks')
         if applications is not None and not all(
-                isinstance(application, BoundApplication) or
-                isinstance(application, Application)
-                for application in applications):
+            isinstance(application, (BoundApplication, Application))
+            for application in applications
+        ):
             raise ValueError('`applications` should be a list of '
                              'BoundApplications')
         self.roles = roles

@@ -35,29 +35,25 @@ class CostMatrix(Cost):
 class BinaryCrossEntropy(CostMatrix):
     @application
     def cost_matrix(self, y, y_hat):
-        cost = tensor.nnet.binary_crossentropy(y_hat, y)
-        return cost
+        return tensor.nnet.binary_crossentropy(y_hat, y)
 
 
 class AbsoluteError(CostMatrix):
     @application
     def cost_matrix(self, y, y_hat):
-        cost = abs(y - y_hat)
-        return cost
+        return abs(y - y_hat)
 
 
 class SquaredError(CostMatrix):
     @application
     def cost_matrix(self, y, y_hat):
-        cost = tensor.sqr(y - y_hat)
-        return cost
+        return tensor.sqr(y - y_hat)
 
 
 class CategoricalCrossEntropy(Cost):
     @application(outputs=["cost"])
     def apply(self, y, y_hat):
-        cost = tensor.nnet.categorical_crossentropy(y_hat, y).mean()
-        return cost
+        return tensor.nnet.categorical_crossentropy(y_hat, y).mean()
 
 
 class MisclassificationRate(Cost):

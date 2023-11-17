@@ -181,10 +181,7 @@ def dump(object_, file_, parameters=None, use_cpickle=False,
         Keyword arguments to be passed to `pickle.Pickler`.
 
     """
-    if use_cpickle:
-        pickler = cPickle.Pickler
-    else:
-        pickler = _PicklerWithWarning
+    pickler = cPickle.Pickler if use_cpickle else _PicklerWithWarning
     with closing(tarfile.TarFile(fileobj=file_, mode='w')) as tar_file:
         external_objects = {}
 
@@ -263,10 +260,7 @@ def load(file_, name='_pkl', use_cpickle=False, **kwargs):
 
     """
     file_.seek(0)  # To be able to read several objects in one file
-    if use_cpickle:
-        unpickler = cPickle.Unpickler
-    else:
-        unpickler = pickle.Unpickler
+    unpickler = cPickle.Unpickler if use_cpickle else pickle.Unpickler
     with tarfile.open(fileobj=file_, mode='r') as tar_file:
         p = unpickler(
             tar_file.extractfile(tar_file.getmember(name)),
@@ -355,20 +349,16 @@ def add_to_dump(object_, file_, name, parameters=None, use_cpickle=False,
             if '_parameters' not in tar_file.getnames():
                 raise ValueError("There is no parameters in the archive, so"
                                  " you can't use the argument parameters.")
-            else:
-                parameters = numpy.load(
-                    tar_file.extractfile(tar_file.getmember('_parameters')))
-                s1 = set(parameters.keys())
-                s2 = [_unmangle_parameter_name(x)[2] for x in
-                      external_parameters.values()]
-                if not s1.issuperset(s2):
-                    raise ValueError('The set of parameters is different'
-                                     ' from the one in the archive.')
+            parameters = numpy.load(
+                tar_file.extractfile(tar_file.getmember('_parameters')))
+            s1 = set(parameters.keys())
+            s2 = [_unmangle_parameter_name(x)[2] for x in
+                  external_parameters.values()]
+            if not s1.issuperset(s2):
+                raise ValueError('The set of parameters is different'
+                                 ' from the one in the archive.')
 
-    if use_cpickle:
-        pickler = cPickle.Pickler
-    else:
-        pickler = _PicklerWithWarning
+    pickler = cPickle.Pickler if use_cpickle else _PicklerWithWarning
     file_.seek(0)  # To be able to add new things in the tar file.
     with closing(tarfile.TarFile(fileobj=file_, mode='a')) as tar_file:
         save_object = _SaveObject(pickler, object_, external_parameters,
@@ -611,8 +601,7 @@ def _mangle_parameter_name(parameter, name):
                     else None)
     if isinstance(context_name, str) and '.' in context_name:
         raise ValueError("context name must not contain dots")
-    return '#1{}.{}.{}'.format(
-        _ARRAY_TYPE_MAP[array_type], context_name, name)
+    return f'#1{_ARRAY_TYPE_MAP[array_type]}.{context_name}.{name}'
 
 
 def _unmangle_parameter_name(mangled_name):

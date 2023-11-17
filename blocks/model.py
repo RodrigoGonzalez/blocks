@@ -71,10 +71,8 @@ class Model(ComputationGraph):
             if brick not in children and brick not in self.top_bricks:
                 self.top_bricks.append(brick)
         names = Counter([brick.name for brick in self.top_bricks])
-        repeated_names = [name for name, count in names.items() if count > 1]
-        if repeated_names:
-            raise ValueError("top bricks with the same name:"
-                             " {}".format(', '.join(repeated_names)))
+        if repeated_names := [name for name, count in names.items() if count > 1]:
+            raise ValueError(f"top bricks with the same name: {', '.join(repeated_names)}")
         parameter_list = []
         for parameter in self.parameters:
             if get_brick(parameter):
@@ -88,8 +86,9 @@ class Model(ComputationGraph):
     def check_sanity(self, algorithm):
         # Sanity check for the most common case
         if self and isinstance(algorithm, GradientDescent):
-            if not (set(self.get_parameter_dict().values()) ==
-                    set(algorithm.parameters)):
+            if set(self.get_parameter_dict().values()) != set(
+                algorithm.parameters
+            ):
                 logger.warning("different parameters for model and algorithm")
 
     def get_parameter_dict(self):
@@ -142,17 +141,17 @@ class Model(ComputationGraph):
         unknown = set(parameter_values) - set(parameters)
         missing = set(parameters) - set(parameter_values)
         if len(unknown):
-            logger.error("unknown parameter names: {}\n".format(unknown))
+            logger.error(f"unknown parameter names: {unknown}\n")
         if len(missing):
-            logger.error("missing values for parameters: {}\n".format(missing))
+            logger.error(f"missing values for parameters: {missing}\n")
 
         for name, value in parameter_values.items():
             if name in parameters:
                 model_shape = parameters[name].container.data.shape
                 if model_shape != value.shape:
-                    raise ValueError("Shape mismatch for parameter: {}. "
-                                     "Expected {}, got {}."
-                                     .format(name, model_shape, value.shape))
+                    raise ValueError(
+                        f"Shape mismatch for parameter: {name}. Expected {model_shape}, got {value.shape}."
+                    )
                 parameters[name].set_value(value)
 
     def get_top_bricks(self):

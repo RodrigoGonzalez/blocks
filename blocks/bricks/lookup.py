@@ -70,9 +70,7 @@ class LookupTable(Initializable, Feedforward):
     def get_dim(self, name):
         if name == 'output':
             return self.dim
-        if name == 'indices':
-            return 0
-        return super(LookupTable, self).get_dim(name)
+        return 0 if name == 'indices' else super(LookupTable, self).get_dim(name)
 
     @property
     def input_dim(self):

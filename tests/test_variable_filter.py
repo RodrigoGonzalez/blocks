@@ -36,7 +36,7 @@ def test_variable_filter():
     role_filter = VariableFilter(roles=[PARAMETER, BIAS])
     assert parameters == role_filter(cg.variables)
     role_filter = VariableFilter(roles=[PARAMETER, BIAS], each_role=True)
-    assert not parameters == role_filter(cg.variables)
+    assert parameters != role_filter(cg.variables)
     assert bias == role_filter(cg.variables)
 
     # Testing filtering by bricks classes

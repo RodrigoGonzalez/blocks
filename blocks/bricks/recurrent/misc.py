@@ -174,9 +174,7 @@ class RecurrentStack(BaseRecurrent, Initializable):
     def suffix(name, level):
         if name == "mask":
             return "mask"
-        if level == 0:
-            return name
-        return name + RECURRENTSTACK_SEPARATOR + str(level)
+        return name if level == 0 else name + RECURRENTSTACK_SEPARATOR + str(level)
 
     @staticmethod
     def suffixes(names, level):
@@ -211,10 +209,14 @@ class RecurrentStack(BaseRecurrent, Initializable):
             # bottom then use bias
             fork_prototype = Linear(use_bias=not skip_connections)
         depth = len(transitions)
-        self.forks = [Fork(self.normal_inputs(level),
-                           name='fork_' + str(level),
-                           prototype=fork_prototype)
-                      for level in range(1, depth)]
+        self.forks = [
+            Fork(
+                self.normal_inputs(level),
+                name=f'fork_{str(level)}',
+                prototype=fork_prototype,
+            )
+            for level in range(1, depth)
+        ]
 
         self.children = self.transitions + self.forks
 
@@ -249,9 +251,9 @@ class RecurrentStack(BaseRecurrent, Initializable):
             self.apply.sequences.append("mask")
 
         # add context
-        self.apply.contexts = list(set(
-            sum([transition.apply.contexts for transition in transitions], [])
-        ))
+        self.apply.contexts = list(
+            set(sum((transition.apply.contexts for transition in transitions), []))
+        )
 
         # sum up all the arguments we expect to see in a call to a transition
         # apply method, anything else is a recursion control

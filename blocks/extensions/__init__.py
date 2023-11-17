@@ -147,7 +147,7 @@ class CallbackName(str):
                           in TrainingExtension.__dict__.items()
                           if getattr(value, '_is_callback', False)]
         if other not in callback_names:
-            raise TypeError("{} is not a valid callback.".format(other))
+            raise TypeError(f"{other} is not a valid callback.")
         return str(self) == other
 
 
@@ -270,7 +270,7 @@ class SimpleExtension(TrainingExtension):
                     self.add_condition([conditions.get(key, key)],
                                        predicate=predicate)
                 else:
-                    raise KeyError("Invalid condition: {}".format(key))
+                    raise KeyError(f"Invalid condition: {key}")
         return self  # For chaining calls.
 
     def add_condition(self, callbacks_names, predicate=None, arguments=None):
@@ -367,8 +367,7 @@ class SimpleExtension(TrainingExtension):
 
         """
         args = tuple(args)
-        if (which_callback == 'after_batch' or
-                which_callback == 'before_batch'):
+        if which_callback in ['after_batch', 'before_batch']:
             return (args[0],), args[1:]
         return (), args
 
@@ -458,7 +457,7 @@ class Printing(SimpleExtension):
     def _print_attributes(self, attribute_tuples):
         for attr, value in sorted(attribute_tuples.items(), key=first):
             if not attr.startswith("_"):
-                print("\t", "{}:".format(attr), value)
+                print("\t", f"{attr}:", value)
 
     def do(self, which_callback, *args):
         log = self.main_loop.log
@@ -481,8 +480,7 @@ class Printing(SimpleExtension):
         if print_status:
             print("Training status:")
             self._print_attributes(log.status)
-            print("Log records from the iteration {}:".format(
-                log.status['iterations_done']))
+            print(f"Log records from the iteration {log.status['iterations_done']}:")
             self._print_attributes(log.current_row)
         print()
 
@@ -528,8 +526,7 @@ class ProgressBar(TrainingExtension):
                 not hasattr(iter_scheme, 'batch_size')):
             # schemes that extend IndexScheme
             return len(iter_scheme.indices)
-        elif (hasattr(iter_scheme, 'indices') and
-              hasattr(iter_scheme, 'batch_size')):
+        elif hasattr(iter_scheme, 'indices'):
             # schemes that extend BatchScheme
             return len(iter_scheme.indices) // iter_scheme.batch_size
         elif (hasattr(iter_scheme, 'num_examples') and
@@ -549,17 +546,28 @@ class ProgressBar(TrainingExtension):
         epochs_done = self.main_loop.log.status['epochs_done']
 
         if iter_per_epoch is None:
-            widgets = ["Epoch {}, step ".format(epochs_done),
-                       progressbar.Counter(), ' ',
-                       progressbar.BouncingBar(), ' ',
-                       progressbar.Timer()]
+            widgets = [
+                f"Epoch {epochs_done}, step ",
+                progressbar.Counter(),
+                ' ',
+                progressbar.BouncingBar(),
+                ' ',
+                progressbar.Timer(),
+            ]
             iter_per_epoch = progressbar.UnknownLength
         else:
-            widgets = ["Epoch {}, step ".format(epochs_done),
-                       progressbar.Counter(),
-                       ' (', progressbar.Percentage(), ') ',
-                       progressbar.Bar(), ' ',
-                       progressbar.Timer(), ' ', progressbar.ETA()]
+            widgets = [
+                f"Epoch {epochs_done}, step ",
+                progressbar.Counter(),
+                ' (',
+                progressbar.Percentage(),
+                ') ',
+                progressbar.Bar(),
+                ' ',
+                progressbar.Timer(),
+                ' ',
+                progressbar.ETA(),
+            ]
 
         return progressbar.ProgressBar(widgets=widgets,
                                        max_value=iter_per_epoch)
@@ -639,7 +647,7 @@ class Timing(SimpleExtension):
             level = 'epoch'
             counter = 'epochs_done'
         else:
-            raise ValueError('wrong callback type `{}`'.format(which_callback))
+            raise ValueError(f'wrong callback type `{which_callback}`')
         for action in ['train', 'read_data']:
             self.previous_index[level][action] = (
                 self.current_index[level][action])
@@ -662,7 +670,7 @@ class Timing(SimpleExtension):
                 (current_index - previous_index))
             total_time = self.prefix + 'time_{}_total'
             current_row[total_time.format(action)] = \
-                self.current[level][action]
+                    self.current[level][action]
 
 
 class Timestamp(SimpleExtension):

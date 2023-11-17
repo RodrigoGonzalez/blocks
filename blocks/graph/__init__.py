@@ -214,8 +214,8 @@ class ComputationGraph(object):
             if variable in replacements:
                 if has_roles(variable, [AUXILIARY]):
                     warnings.warn(
-                        "replace method was asked to replace a variable ({}) "
-                        "that is an auxiliary variable.".format(variable))
+                        f"replace method was asked to replace a variable ({variable}) that is an auxiliary variable."
+                    )
                 replacement_keys_cur.append(variable)
                 # self.variables should not contain duplicates,
                 # otherwise pop() may fail.
@@ -225,9 +225,8 @@ class ComputationGraph(object):
         # if remaining_replacements is not empty
         if remaining_replacements:
             warnings.warn(
-                "replace method was asked to replace a variable(s) ({}) "
-                "that is not a part of the computational "
-                "graph.".format(str(remaining_replacements.keys())))
+                f"replace method was asked to replace a variable(s) ({str(remaining_replacements.keys())}) that is not a part of the computational graph."
+            )
 
         # Replace step-by-step in topological order
         while replacement_keys_cur:
@@ -330,10 +329,10 @@ def apply_noise(computation_graph, variables, level, seed=None):
     if not seed:
         seed = config.default_seed
     rng = MRG_RandomStreams(seed)
-    replace = {}
-    for variable in variables:
-        replace[variable] = (variable +
-                             rng.normal(variable.shape, std=level))
+    replace = {
+        variable: (variable + rng.normal(variable.shape, std=level))
+        for variable in variables
+    }
     return computation_graph.replace(replace)
 
 
@@ -526,10 +525,7 @@ def apply_dropout(computation_graph, variables, drop_prob, rng=None,
         seed = config.default_seed
     if not rng:
         rng = MRG_RandomStreams(seed)
-    if custom_divisor is None:
-        divisor = (1 - drop_prob)
-    else:
-        divisor = custom_divisor
+    divisor = (1 - drop_prob) if custom_divisor is None else custom_divisor
     replacements = [(var, var *
                      rng.binomial(var.shape, p=1 - drop_prob,
                                   dtype=theano.config.floatX) /

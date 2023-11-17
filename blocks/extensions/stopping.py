@@ -47,9 +47,9 @@ class FinishIfNoImprovementAfter(FinishAfter):
         kwargs.setdefault('after_epoch', True)
         self.last_best_iter = self.last_best_epoch = None
         if patience_log_record is None:
-            self.patience_log_record = (notification_name + '_patience' +
-                                        ('_epochs' if self.epochs is not None
-                                         else '_iterations'))
+            self.patience_log_record = f'{notification_name}_patience' + (
+                '_epochs' if self.epochs is not None else '_iterations'
+            )
         else:
             self.patience_log_record = patience_log_record
         super(FinishIfNoImprovementAfter, self).__init__(**kwargs)
@@ -212,7 +212,7 @@ class EarlyStopping(CompositeExtension):
                  checkpoint_filename=None, notification_name=None,
                  choose_best=min, iterations=None, epochs=None, **kwargs):
         if notification_name is None:
-            notification_name = record_name + '_best_so_far'
+            notification_name = f'{record_name}_best_so_far'
         kwargs.setdefault('after_epoch', True)
         tracking_ext = TrackTheBest(record_name, notification_name,
                                     choose_best=choose_best, **kwargs)

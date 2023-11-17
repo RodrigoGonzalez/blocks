@@ -95,7 +95,7 @@ class Path(object):
                 nodes.append(Path.ParameterName(part))
             else:
                 # This can not if separator_re is a correct regexp
-                raise ValueError("Wrong separator {}".format(separator))
+                raise ValueError(f"Wrong separator {separator}")
 
         return Path(nodes)
 

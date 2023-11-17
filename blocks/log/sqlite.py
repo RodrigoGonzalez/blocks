@@ -73,10 +73,7 @@ def adapt_ndarray(obj):
         Otherwise it binarizes the NumPy array using :func:`adapt_obj`
 
     """
-    if obj.ndim == 0:
-        return float(obj)
-    else:
-        return adapt_obj(obj)
+    return float(obj) if obj.ndim == 0 else adapt_obj(obj)
 
 
 def _get_row(row, key):

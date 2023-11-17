@@ -138,7 +138,7 @@ class TrainingDataMonitoring(SimpleExtension, MonitoringExtension):
             elif isinstance(variable_or_not, MonitoredQuantity):
                 self._non_variables.append(variable_or_not)
             else:
-                raise ValueError("can not monitor {}".format(variable_or_not))
+                raise ValueError(f"can not monitor {variable_or_not}")
 
         self._non_variables = MonitoredQuantityBuffer(self._non_variables)
         self._required_for_non_variables = AggregationBuffer(
@@ -172,7 +172,6 @@ class TrainingDataMonitoring(SimpleExtension, MonitoringExtension):
                 self._required_for_non_variables.accumulation_updates)
             self._variables.initialize_aggregators()
             self._required_for_non_variables.initialize_aggregators()
-            self._non_variables.initialize_quantities()
         else:
             # When called first time at any iterations, update
             # monitored non-Theano quantities
@@ -197,4 +196,5 @@ class TrainingDataMonitoring(SimpleExtension, MonitoringExtension):
             self.add_records(
                 self.main_loop.log,
                 self._non_variables.get_aggregated_values().items())
-            self._non_variables.initialize_quantities()
+
+        self._non_variables.initialize_quantities()

@@ -20,7 +20,7 @@ def _validate_variable_names(variables):
     name_counts = Counter(variable_names)
     if None in name_counts:
         none_names = [v for v in variables if v.name is None]
-        raise ValueError('Variables must have names: {}'.format(none_names))
+        raise ValueError(f'Variables must have names: {none_names}')
 
     if any(v > 1 for v in name_counts.values()):
         raise ValueError("Variables should have unique names."
@@ -76,20 +76,18 @@ class MonitoredQuantityBuffer(object):
         if not self._initialized:
             raise Exception("To readout you must first initialize, then"
                             "process batches!")
-        else:
-            ret_vals = [q.get_aggregated_value() for q in self.quantities]
-            return dict(zip(self.quantity_names, ret_vals))
+        ret_vals = [q.get_aggregated_value() for q in self.quantities]
+        return dict(zip(self.quantity_names, ret_vals))
 
     def aggregate_quantities(self, numerical_values):
         """Aggregate the results for every batch."""
         if not self._initialized:
             raise Exception("To readout you must first initialize, then"
                             "process batches!")
-        else:
-            for quantity in self.quantities:
-                quantity.aggregate(
-                    *[numerical_values[self.requires.index(requirement)]
-                        for requirement in quantity.requires])
+        for quantity in self.quantities:
+            quantity.aggregate(
+                *[numerical_values[self.requires.index(requirement)]
+                    for requirement in quantity.requires])
 
 
 class AggregationBuffer(object):
@@ -302,9 +300,8 @@ class DatasetEvaluator(object):
             batch = dict_subset(batch, input_names)
         except KeyError:
             reraise_as(
-                "Not all data sources required for monitoring were"
-                " provided. The list of required data sources:"
-                " {}.".format(input_names))
+                f"Not all data sources required for monitoring were provided. The list of required data sources: {input_names}."
+            )
         if self._aggregate_fun is not None:
             numerical_values = self._aggregate_fun(**batch)
             self.monitored_quantities_buffer.aggregate_quantities(

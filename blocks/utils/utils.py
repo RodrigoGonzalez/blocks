@@ -23,10 +23,7 @@ def pack(arg):
         List containing the arguments
 
     """
-    if isinstance(arg, (list, tuple)):
-        return list(arg)
-    else:
-        return [arg]
+    return list(arg) if isinstance(arg, (list, tuple)) else [arg]
 
 
 def reraise_as(new_exc):
@@ -85,7 +82,7 @@ def reraise_as(new_exc):
         new_message += '\n\nOriginal exception:\n\t' + orig_exc_type.__name__
         if hasattr(orig_exc_value, 'args') and len(orig_exc_value.args) > 0:
             if getattr(orig_exc_value, 'reraised', False):
-                new_message += ': ' + str(orig_exc_value.args[0])
+                new_message += f': {str(orig_exc_value.args[0])}'
             else:
                 new_message += ': ' + ', '.join(str(arg)
                                                 for arg in orig_exc_value.args)
@@ -119,16 +116,13 @@ def unpack(arg, singleton=False):
         except tuple.
 
     """
-    if isinstance(arg, (list, tuple)):
-        if len(arg) == 1:
-            return arg[0]
-        else:
-            if singleton:
-                raise ValueError("Expected a singleton, got {}".
-                                 format(arg))
-            return list(arg)
-    else:
+    if not isinstance(arg, (list, tuple)):
         return arg
+    if len(arg) == 1:
+        return arg[0]
+    if singleton:
+        raise ValueError(f"Expected a singleton, got {arg}")
+    return list(arg)
 
 
 def dict_subset(dict_, keys, pop=False, must_have=True):
@@ -158,12 +152,8 @@ def dict_subset(dict_, keys, pop=False, must_have=True):
 
     def extract(k):
         if pop:
-            if must_have:
-                return dict_.pop(k)
-            return dict_.pop(k, not_found)
-        if must_have:
-            return dict_[k]
-        return dict_.get(k, not_found)
+            return dict_.pop(k) if must_have else dict_.pop(k, not_found)
+        return dict_[k] if must_have else dict_.get(k, not_found)
 
     result = [(key, extract(key)) for key in keys]
     return OrderedDict([(k, v) for k, v in result if v is not not_found])
@@ -188,16 +178,12 @@ def dict_union(*dicts, **kwargs):
 
     """
     dicts = list(dicts)
-    if dicts and isinstance(dicts[0], OrderedDict):
-        result = OrderedDict()
-    else:
-        result = {}
+    result = OrderedDict() if dicts and isinstance(dicts[0], OrderedDict) else {}
     for d in list(dicts) + [kwargs]:
-        duplicate_keys = set(result.keys()) & set(d.keys())
-        if duplicate_keys:
-            raise ValueError("The following keys have duplicate entries: {}"
-                             .format(", ".join(str(key) for key in
-                                               duplicate_keys)))
+        if duplicate_keys := set(result.keys()) & set(d.keys()):
+            raise ValueError(
+                f'The following keys have duplicate entries: {", ".join(str(key) for key in duplicate_keys)}'
+            )
         result.update(d)
     return result
 
@@ -227,9 +213,9 @@ def repr_attrs(instance, *attrs):
     orig_repr_template = ("<{0.__class__.__module__}.{0.__class__.__name__} "
                           "object at {1:#x}")
     if attrs:
-        repr_template = (orig_repr_template + ": " +
-                         ", ".join(["{0}={{0.{0}}}".format(attr)
-                                    for attr in attrs]))
+        repr_template = f"{orig_repr_template}: " + ", ".join(
+            ["{0}={{0.{0}}}".format(attr) for attr in attrs]
+        )
     repr_template += '>'
     orig_repr_template += '>'
     try:
@@ -254,13 +240,13 @@ def ipdb_breakpoint(x):
 def print_sum(x, header=None):
     if not header:
         header = 'print_sum'
-    print(header + ':', x.sum())
+    print(f'{header}:', x.sum())
 
 
 def print_shape(x, header=None):
     if not header:
         header = 'print_shape'
-    print(header + ':', x.shape)
+    print(f'{header}:', x.shape)
 
 
 @contextlib.contextmanager
@@ -320,10 +306,9 @@ def extract_args(expected, *args, **kwargs):
     routed_args = dict(zip(expected, args))
     for name in kwargs:
         if name not in expected:
-            raise KeyError('invalid input name: {}'.format(name))
+            raise KeyError(f'invalid input name: {name}')
         elif name in routed_args:
-            raise TypeError("got multiple values for "
-                            "argument '{}'".format(name))
+            raise TypeError(f"got multiple values for argument '{name}'")
         else:
             routed_args[name] = kwargs[name]
     if set(expected) != set(routed_args):

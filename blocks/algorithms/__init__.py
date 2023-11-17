@@ -181,8 +181,9 @@ class UpdatesAlgorithm(TrainingAlgorithm):
                         sources=batch.keys(),
                         variables=in_names))
             else:
-                raise ValueError("Wrong value of on_unused_sources: {}."
-                                 .format(self.on_unused_sources))
+                raise ValueError(
+                    f"Wrong value of on_unused_sources: {self.on_unused_sources}."
+                )
 
     def process_batch(self, batch):
         self._validate_source_names(batch)
@@ -282,9 +283,9 @@ class GradientDescent(UpdatesAlgorithm):
                                                      consider_constant)
         else:
             if cost is not None:
-                logger.warning(('{}: gradients already specified directly; '
-                                'cost is unused.'
-                                .format(self.__class__.__name__)))
+                logger.warning(
+                    f'{self.__class__.__name__}: gradients already specified directly; cost is unused.'
+                )
             if self.parameters is None and isinstance(gradients, OrderedDict):
                 # If the dictionary is ordered, it's safe to use the keys
                 # as they have a deterministic order.
@@ -771,8 +772,9 @@ class VariableClipping(StepRule):
 
     def compute_step(self, parameter, previous_step):
         if any(ax >= previous_step.ndim for ax in self.axis):
-            raise ValueError("Invalid axis {} for {}, ndim={}".format(
-                self.axis, parameter, previous_step.ndim))
+            raise ValueError(
+                f"Invalid axis {self.axis} for {parameter}, ndim={previous_step.ndim}"
+            )
         if len(self.axis) == 0:
             norms = l2_norm([parameter - previous_step])
         else:
@@ -822,7 +824,7 @@ class AdaGrad(StepRule):
     def compute_step(self, parameter, previous_step):
         name = 'adagrad_sqs'
         if parameter.name:
-            name += '_' + parameter.name
+            name += f'_{parameter.name}'
         ssq = _create_algorithm_buffer_for(parameter, name=name)
 
         ssq_t = (tensor.sqr(previous_step) + ssq)

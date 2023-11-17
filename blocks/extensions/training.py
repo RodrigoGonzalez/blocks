@@ -109,9 +109,9 @@ class TrackTheBest(SimpleExtension):
                  choose_best=min, **kwargs):
         self.record_name = record_name
         if not notification_name:
-            notification_name = record_name + "_best_so_far"
+            notification_name = f"{record_name}_best_so_far"
         self.notification_name = notification_name
-        self.best_name = "best_" + record_name
+        self.best_name = f"best_{record_name}"
         self.choose_best = choose_best
         kwargs.setdefault("after_epoch", True)
         super(TrackTheBest, self).__init__(**kwargs)

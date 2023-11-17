@@ -63,6 +63,7 @@ def test_composite_extension_dispatches():
 
 
 def test_composite_extension_run_before():
+
     class Foo(SimpleExtension):
         def __init__(self, num, **kwargs):
             self.num = num
@@ -71,11 +72,12 @@ def test_composite_extension_run_before():
         def do(self, which_callback, *args):
             self.num += 1
 
+
+
     class Bar(CompositeExtension):
         def do(self, which_callback, *args):
-            self.num = 0
-            for sub in self.sub_extensions:
-                self.num += sub.num
+            self.num = sum(sub.num for sub in self.sub_extensions)
+
 
     comp = Bar([Foo(1, before_training=True),
                 Foo(2, before_training=True)],
@@ -87,6 +89,7 @@ def test_composite_extension_run_before():
 
 
 def test_composite_extension_run_after():
+
     class Foo(SimpleExtension):
         def __init__(self, num, **kwargs):
             self.num = num
@@ -95,11 +98,12 @@ def test_composite_extension_run_after():
         def do(self, which_callback, *args):
             self.num += 1
 
+
+
     class Bar(CompositeExtension):
         def do(self, which_callback, *args):
-            self.num = 0
-            for sub in self.sub_extensions:
-                self.num += sub.num
+            self.num = sum(sub.num for sub in self.sub_extensions)
+
 
     comp = Bar([Foo(1, before_training=True),
                 Foo(2, before_training=True)],

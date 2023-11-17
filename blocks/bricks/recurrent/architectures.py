@@ -146,9 +146,7 @@ class LSTM(BaseRecurrent, Initializable):
             return self.dim * 4
         if name in ['states', 'cells']:
             return self.dim
-        if name == 'mask':
-            return 0
-        return super(LSTM, self).get_dim(name)
+        return 0 if name == 'mask' else super(LSTM, self).get_dim(name)
 
     def _allocate(self):
         self.W_state = shared_floatx_nans((self.dim, 4*self.dim),

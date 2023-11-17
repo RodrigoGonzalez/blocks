@@ -374,13 +374,16 @@ def test_mlp():
 
 
 def test_mlp_prototype_argument():
+
     class MyLinear(Linear):
         pass
     mlp = MLP(activations=[Tanh(), Tanh(), None],
               dims=[4, 5, 6, 7], prototype=MyLinear())
     assert all(isinstance(lt, MyLinear) for lt in mlp.linear_transformations)
-    assert all(lt.name == 'mylinear_{}'.format(i)
-               for i, lt in enumerate(mlp.linear_transformations))
+    assert all(
+        lt.name == f'mylinear_{i}'
+        for i, lt in enumerate(mlp.linear_transformations)
+    )
 
 
 def test_mlp_use_bias_pushed_when_not_explicitly_specified():

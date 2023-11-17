@@ -51,10 +51,7 @@ class TrainingLogBase(object):
 
     """
     def __init__(self, uuid=None):
-        if uuid is None:
-            self.uuid = uuid4()
-        else:
-            self.uuid = uuid
+        self.uuid = uuid4() if uuid is None else uuid
         if uuid is None:
             self.status.update({
                 'iterations_done': 0,

@@ -135,12 +135,12 @@ class Mean(AggregationScheme):
                                 (denominator_acc,
                                  conditional_update_den),
                                 (initialized, tensor.ones_like(initialized))]
-        aggregator = Aggregator(aggregation_scheme=self,
-                                initialization_updates=initialization_updates,
-                                accumulation_updates=accumulation_updates,
-                                readout_variable=(numerator_acc /
-                                                  denominator_acc))
-        return aggregator
+        return Aggregator(
+            aggregation_scheme=self,
+            initialization_updates=initialization_updates,
+            accumulation_updates=accumulation_updates,
+            readout_variable=(numerator_acc / denominator_acc),
+        )
 
 
 class Perplexity(Mean):

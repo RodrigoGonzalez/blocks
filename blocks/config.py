@@ -101,8 +101,7 @@ class Configuration(object):
                 config_dict = yaml.safe_load(f) or {}
                 for key, value in config_dict.items():
                     if key not in self.config:
-                        raise ValueError("Unrecognized config in YAML: {}"
-                                         .format(key))
+                        raise ValueError(f"Unrecognized config in YAML: {key}")
                     self.config[key]['yaml'] = value
 
     def __getattr__(self, key):
@@ -119,8 +118,9 @@ class Configuration(object):
         elif 'default' in config_setting:
             value = config_setting['default']
         else:
-            raise ConfigurationError("Configuration not set and no default "
-                                     "provided: {}.".format(key))
+            raise ConfigurationError(
+                f"Configuration not set and no default provided: {key}."
+            )
         return config_setting['type'](value)
 
     def __setattr__(self, key, value):

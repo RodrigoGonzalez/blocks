@@ -286,7 +286,8 @@ class BaseSequenceGenerator(Initializable):
         # next batch using the last states of the current batch.
         for name in self._state_names + self._glimpse_names:
             application_call.add_auxiliary_variable(
-                results[name][-1].copy(), name=name+"_final_value")
+                results[name][-1].copy(), name=f"{name}_final_value"
+            )
 
         return costs
 
@@ -717,9 +718,7 @@ class SoftmaxEmitter(AbstractEmitter, Initializable, Random):
         return self.initial_output * tensor.ones((batch_size,), dtype='int64')
 
     def get_dim(self, name):
-        if name == 'outputs':
-            return 0
-        return super(SoftmaxEmitter, self).get_dim(name)
+        return 0 if name == 'outputs' else super(SoftmaxEmitter, self).get_dim(name)
 
 
 class TrivialFeedback(AbstractFeedback):

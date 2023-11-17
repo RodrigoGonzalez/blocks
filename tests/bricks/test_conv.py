@@ -142,8 +142,7 @@ def test_convolutional_transpose_original_size_inferred_conv_sequence():
     try:
         seq.allocate()
     except Exception as e:
-        raise AssertionError('exception raised: {}: {}'.format(
-            e.__class__.__name__, e))
+        raise AssertionError(f'exception raised: {e.__class__.__name__}: {e}')
 
 
 def test_conv_transpose_exception():
@@ -449,10 +448,17 @@ def test_convolutional_sequence_activation_get_dim():
 
 def test_convolutional_sequence_use_bias():
     cnn = ConvolutionalSequence(
-        sum([[Convolutional(filter_size=(1, 1), num_filters=1), Rectifier()]
-             for _ in range(3)], []),
-        num_channels=1, image_size=(1, 1),
-        use_bias=False)
+        sum(
+            (
+                [Convolutional(filter_size=(1, 1), num_filters=1), Rectifier()]
+                for _ in range(3)
+            ),
+            [],
+        ),
+        num_channels=1,
+        image_size=(1, 1),
+        use_bias=False,
+    )
     cnn.allocate()
     x = tensor.tensor4()
     y = cnn.apply(x)
@@ -462,10 +468,21 @@ def test_convolutional_sequence_use_bias():
 
 def test_convolutional_sequence_use_bias_not_pushed_if_not_explicitly_set():
     cnn = ConvolutionalSequence(
-        sum([[Convolutional(filter_size=(1, 1), num_filters=1,
-                            use_bias=False), Rectifier()]
-             for _ in range(3)], []),
-        num_channels=1, image_size=(1, 1))
+        sum(
+            (
+                [
+                    Convolutional(
+                        filter_size=(1, 1), num_filters=1, use_bias=False
+                    ),
+                    Rectifier(),
+                ]
+                for _ in range(3)
+            ),
+            [],
+        ),
+        num_channels=1,
+        image_size=(1, 1),
+    )
     cnn.allocate()
     assert [not child.use_bias for child in cnn.children
             if isinstance(child, Convolutional)]
@@ -473,10 +490,21 @@ def test_convolutional_sequence_use_bias_not_pushed_if_not_explicitly_set():
 
 def test_convolutional_sequence_tied_biases_not_pushed_if_not_explicitly_set():
     cnn = ConvolutionalSequence(
-        sum([[Convolutional(filter_size=(1, 1), num_filters=1,
-                            tied_biases=True), Rectifier()]
-             for _ in range(3)], []),
-        num_channels=1, image_size=(1, 1))
+        sum(
+            (
+                [
+                    Convolutional(
+                        filter_size=(1, 1), num_filters=1, tied_biases=True
+                    ),
+                    Rectifier(),
+                ]
+                for _ in range(3)
+            ),
+            [],
+        ),
+        num_channels=1,
+        image_size=(1, 1),
+    )
     cnn.allocate()
     assert [child.tied_biases for child in cnn.children
             if isinstance(child, Convolutional)]
@@ -484,18 +512,38 @@ def test_convolutional_sequence_tied_biases_not_pushed_if_not_explicitly_set():
 
 def test_convolutional_sequence_tied_biases_pushed_if_explicitly_set():
     cnn = ConvolutionalSequence(
-        sum([[Convolutional(filter_size=(1, 1), num_filters=1,
-                            tied_biases=True), Rectifier()]
-             for _ in range(3)], []),
-        num_channels=1, image_size=(1, 1), tied_biases=False)
+        sum(
+            (
+                [
+                    Convolutional(
+                        filter_size=(1, 1), num_filters=1, tied_biases=True
+                    ),
+                    Rectifier(),
+                ]
+                for _ in range(3)
+            ),
+            [],
+        ),
+        num_channels=1,
+        image_size=(1, 1),
+        tied_biases=False,
+    )
     cnn.allocate()
     assert [not child.tied_biases for child in cnn.children
             if isinstance(child, Convolutional)]
 
     cnn = ConvolutionalSequence(
-        sum([[Convolutional(filter_size=(1, 1), num_filters=1), Rectifier()]
-             for _ in range(3)], []),
-        num_channels=1, image_size=(1, 1), tied_biases=True)
+        sum(
+            (
+                [Convolutional(filter_size=(1, 1), num_filters=1), Rectifier()]
+                for _ in range(3)
+            ),
+            [],
+        ),
+        num_channels=1,
+        image_size=(1, 1),
+        tied_biases=True,
+    )
     cnn.allocate()
     assert [child.tied_biases for child in cnn.children
             if isinstance(child, Convolutional)]

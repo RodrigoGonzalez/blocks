@@ -66,8 +66,7 @@ class Feedforward(Brick):
 
     """
     def __getattr__(self, name):
-        message = ("'{}' object does not have an attribute '{}'"
-                   .format(self.__class__.__name__, name))
+        message = f"'{self.__class__.__name__}' object does not have an attribute '{name}'"
         if name in ('input_dim', 'output_dim'):
             message += (" (which is a part of 'Feedforward' interface it"
                         " claims to support)")
@@ -80,12 +79,10 @@ class RNGMixin(object):
 
     @property
     def seed(self):
-        if getattr(self, '_seed', None) is not None:
-            return self._seed
-        else:
+        if getattr(self, '_seed', None) is None:
             self._seed = self.seed_rng.randint(
                 numpy.iinfo(numpy.int32).max)
-            return self._seed
+        return self._seed
 
     @seed.setter
     def seed(self, value):
@@ -95,11 +92,9 @@ class RNGMixin(object):
 
     @property
     def rng(self):
-        if getattr(self, '_rng', None) is not None:
-            return self._rng
-        else:
+        if getattr(self, '_rng', None) is None:
             self._rng = numpy.random.RandomState(self.seed)
-            return self._rng
+        return self._rng
 
     @rng.setter
     def rng(self, rng):
@@ -219,12 +214,10 @@ class Random(Brick):
 
     @property
     def theano_seed(self):
-        if getattr(self, '_theano_seed', None) is not None:
-            return self._theano_seed
-        else:
+        if getattr(self, '_theano_seed', None) is None:
             self._theano_seed = self.seed_rng.randint(
                 numpy.iinfo(numpy.int32).max)
-            return self._theano_seed
+        return self._theano_seed
 
     @theano_seed.setter
     def theano_seed(self, value):

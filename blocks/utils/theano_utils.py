@@ -122,7 +122,7 @@ def shared_like(variable, name=None, **kwargs):
     """
     variable = tensor.as_tensor_variable(variable)
     if name is None:
-        name = "shared_{}".format(variable.name)
+        name = f"shared_{variable.name}"
     return theano.shared(numpy.zeros((0,) * variable.ndim,
                                      dtype=variable.dtype),
                          name=name, **kwargs)
@@ -153,13 +153,13 @@ def check_theano_variable(variable, n_dim, dtype_prefix):
 
     if n_dim and variable.ndim != n_dim:
         raise ValueError(
-            "Wrong number of dimensions:\n\texpected {}, got {}".format(
-                n_dim, variable.ndim))
+            f"Wrong number of dimensions:\n\texpected {n_dim}, got {variable.ndim}"
+        )
 
     if dtype_prefix and not variable.dtype.startswith(dtype_prefix):
         raise ValueError(
-            "Wrong dtype prefix:\n\texpected starting with {}, got {}".format(
-                dtype_prefix, variable.dtype))
+            f"Wrong dtype prefix:\n\texpected starting with {dtype_prefix}, got {variable.dtype}"
+        )
 
 
 def is_graph_input(variable):

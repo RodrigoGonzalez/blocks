@@ -126,11 +126,7 @@ class Uniform(NdarrayInitialization):
         if (width is not None) == (std is not None):
             raise ValueError("must specify width or std, "
                              "but not both")
-        if std is not None:
-            # Variance of a uniform is 1/12 * width^2
-            self.width = numpy.sqrt(12) * std
-        else:
-            self.width = width
+        self.width = numpy.sqrt(12) * std if std is not None else width
         self.mean = mean
 
     def generate(self, rng, shape):
@@ -242,13 +238,13 @@ class Sparse(NdarrayInitialization):
     def generate(self, rng, shape):
         weights = self.sparse_init.generate(rng, shape)
         if isinstance(self.num_init, numbers.Integral):
-            if not self.num_init > 0:
+            if self.num_init <= 0:
                 raise ValueError
             num_init = self.num_init
-        else:
-            if not 1 >= self.num_init > 0:
-                raise ValueError
+        elif 1 >= self.num_init > 0:
             num_init = int(self.num_init * shape[1])
+        else:
+            raise ValueError
         values = self.weights_init.generate(rng, (shape[0], num_init))
         for i in range(shape[0]):
             random_indices = numpy.random.choice(shape[1], num_init,

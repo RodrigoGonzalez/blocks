@@ -286,17 +286,14 @@ class TestRecurrentStack(unittest.TestCase):
 
         kwargs = OrderedDict()
         for d in range(depth):
-            if d > 0:
-                suffix = RECURRENTSTACK_SEPARATOR + str(d)
-            else:
-                suffix = ''
+            suffix = RECURRENTSTACK_SEPARATOR + str(d) if d > 0 else ''
             if d == 0 or skip_connections:
-                kwargs['inputs' + suffix] = tensor.matrix('inputs' + suffix)
-                kwargs['inputs' + suffix].tag.test_value = x_val
-            kwargs['states' + suffix] = tensor.matrix('states' + suffix)
-            kwargs['states' + suffix].tag.test_value = h0_val[d]
-            kwargs['cells' + suffix] = tensor.matrix('cells' + suffix)
-            kwargs['cells' + suffix].tag.test_value = c0_val[d]
+                kwargs[f'inputs{suffix}'] = tensor.matrix(f'inputs{suffix}')
+                kwargs[f'inputs{suffix}'].tag.test_value = x_val
+            kwargs[f'states{suffix}'] = tensor.matrix(f'states{suffix}')
+            kwargs[f'states{suffix}'].tag.test_value = h0_val[d]
+            kwargs[f'cells{suffix}'] = tensor.matrix(f'cells{suffix}')
+            kwargs[f'cells{suffix}'].tag.test_value = c0_val[d]
         results = stack.apply(iterate=False, low_memory=low_memory, **kwargs)
         next_h = theano.function(inputs=list(kwargs.values()),
                                  outputs=results)
@@ -368,13 +365,10 @@ class TestRecurrentStack(unittest.TestCase):
         kwargs = OrderedDict()
 
         for d in range(depth):
-            if d > 0:
-                suffix = RECURRENTSTACK_SEPARATOR + str(d)
-            else:
-                suffix = ''
+            suffix = RECURRENTSTACK_SEPARATOR + str(d) if d > 0 else ''
             if d == 0 or skip_connections:
-                kwargs['inputs' + suffix] = tensor.tensor3('inputs' + suffix)
-                kwargs['inputs' + suffix].tag.test_value = x_val
+                kwargs[f'inputs{suffix}'] = tensor.tensor3(f'inputs{suffix}')
+                kwargs[f'inputs{suffix}'].tag.test_value = x_val
 
         kwargs['mask'] = tensor.matrix('mask')
         kwargs['mask'].tag.test_value = mask_val
@@ -457,9 +451,9 @@ class TestRecurrentStackHelperMethodes(unittest.TestCase):
 
             resut = RecurrentStack.suffix(name, level)
 
-            assert resut == expected_result, "expected suffix(\"{}\",{}) -> \"{}\" got \"{}\"".format(name, level,
-                                                                                                      expected_result,
-                                                                                                      resut)
+            assert (
+                resut == expected_result
+            ), f'expected suffix(\"{name}\",{level}) -> \"{expected_result}\" got \"{resut}\"'
 
     def test_split_suffix(self):
         # generate some numbers
@@ -493,9 +487,9 @@ class TestRecurrentStackHelperMethodes(unittest.TestCase):
 
             name_part, level = RecurrentStack.split_suffix(name)
 
-            assert name_part == expected_name_part and level == expected_level, \
-                "expected split_suffex(\"{}\") -> name(\"{}\"), level({}) got name(\"{}\"), level({})".format(
-                name, expected_name_part, expected_level, name_part, level)
+            assert (
+                name_part == expected_name_part and level == expected_level
+            ), f'expected split_suffex(\"{name}\") -> name(\"{expected_name_part}\"), level({expected_level}) got name(\"{name_part}\"), level({level})'
 
 
 class TestGatedRecurrent(unittest.TestCase):

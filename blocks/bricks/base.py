@@ -127,7 +127,7 @@ class Application(object):
     def application_function(self):
         if hasattr(self, '_application_function'):
             return self._application_function
-        return getattr(self.brick, '_' + self.application_name)
+        return getattr(self.brick, f'_{self.application_name}')
 
     def property(self, name):
         """Decorator to make application properties.
@@ -205,7 +205,7 @@ class Application(object):
             return self
         if not hasattr(instance, "_bound_applications"):
             instance._bound_applications = {}
-        key = "{}.{}".format(self.brick.__name__, self.application_name)
+        key = f"{self.brick.__name__}.{self.application_name}"
         return instance._bound_applications.setdefault(
             key, BoundApplication(self, instance))
 
@@ -230,7 +230,7 @@ class Application(object):
     def inputs(self, inputs):
         args_names, varargs_name, _, _ = inspect.getargspec(
             self.application_function)
-        if not all(input_ in args_names + [varargs_name] for input_ in inputs):
+        if any(input_ not in args_names + [varargs_name] for input_ in inputs):
             raise ValueError("Unexpected inputs")
         self._inputs = inputs
 
@@ -256,12 +256,11 @@ class Application(object):
         # Find the names of the inputs to the application method
         args_names, varargs_name, _, _ = inspect.getargspec(
             self.application_function)
-        args_names = args_names[1:]
-
         # Construct the ApplicationCall, used to store data in for this call
         call = ApplicationCall(bound_application)
         call.metadata['call_id'] = call_id
         args = list(args)
+        args_names = args_names[1:]
         if 'application' in args_names:
             args.insert(args_names.index('application'), bound_application)
         if 'application_call' in args_names:
@@ -278,7 +277,7 @@ class Application(object):
                 if i < len(args_names):
                     name = args_names[i]
                 else:
-                    name = "{}_{}".format(varargs_name, i - len(args_names))
+                    name = f"{varargs_name}_{i - len(args_names)}"
                 args[i] = copy_and_tag(input_, brick, call, INPUT,
                                        self.name, name)
         for name, input_ in kwargs.items():
@@ -290,11 +289,9 @@ class Application(object):
         last_brick = self.call_stack[-1] if self.call_stack else None
         if (last_brick and brick is not last_brick and
                 brick not in last_brick.children):
-            warnings.warn('Brick ' + str(self.call_stack[-1]) + ' tries '
-                          'to call brick ' + str(self.brick) + ' which '
-                          'is not in the list of its children. This could '
-                          'be caused because an @application decorator is '
-                          'missing.')
+            warnings.warn(
+                f'Brick {str(self.call_stack[-1])} tries to call brick {str(self.brick)} which is not in the list of its children. This could be caused because an @application decorator is missing.'
+            )
         self.call_stack.append(brick)
         try:
             outputs = self.application_function(brick, *args, **kwargs)
@@ -308,7 +305,7 @@ class Application(object):
                 try:
                     name = bound_application.outputs[i]
                 except AttributeError:
-                    name = "output_{}".format(i)
+                    name = f"output_{i}"
                 except IndexError:
                     reraise_as(ValueError("Unexpected outputs"))
                 # TODO Tag with dimensions, axes, etc. for error-checking
@@ -386,18 +383,18 @@ class _Brick(ABCMeta):
     created. These functions can arbitratily modify this namespace.
 
     """
-    def __new__(mcs, name, bases, namespace):
+    def __new__(cls, name, bases, namespace):
         decorators = namespace.get('decorators', [])
         for decorator in decorators:
-            decorator(mcs, name, bases, namespace)
+            decorator(cls, name, bases, namespace)
         for attr in list(namespace.values()):
             if (isinstance(attr, Application) and
                     hasattr(attr, '_application_function')):
-                namespace['_' + attr.application_name] = \
-                    rename_function(attr._application_function,
-                                    '_' + attr.application_name)
+                namespace[f'_{attr.application_name}'] = rename_function(
+                    attr._application_function, f'_{attr.application_name}'
+                )
                 del attr._application_function
-        brick = super(_Brick, mcs).__new__(mcs, name, bases, namespace)
+        brick = super(_Brick, cls).__new__(cls, name, bases, namespace)
         for attr in namespace.values():
             if isinstance(attr, Application):
                 attr.brick = brick
@@ -604,11 +601,12 @@ class Brick(Annotation):
 
         """
         if hasattr(self, 'allocation_args'):
-            missing_config = [arg for arg in self.allocation_args
-                              if getattr(self, arg) is NoneAllocation]
-            if missing_config:
-                raise ValueError('allocation config not set: '
-                                 '{}'.format(', '.join(missing_config)))
+            if missing_config := [
+                arg
+                for arg in self.allocation_args
+                if getattr(self, arg) is NoneAllocation
+            ]:
+                raise ValueError(f"allocation config not set: {', '.join(missing_config)}")
         if not self.allocation_config_pushed:
             self.push_allocation_config()
         for child in self.children:
@@ -642,11 +640,12 @@ class Brick(Annotation):
 
         """
         if hasattr(self, 'initialization_args'):
-            missing_config = [arg for arg in self.initialization_args
-                              if getattr(self, arg) is NoneInitialization]
-            if missing_config:
-                raise ValueError('initialization config not set: '
-                                 '{}'.format(', '.join(missing_config)))
+            if missing_config := [
+                arg
+                for arg in self.initialization_args
+                if getattr(self, arg) is NoneInitialization
+            ]:
+                raise ValueError(f"initialization config not set: {', '.join(missing_config)}")
         if not self.allocated:
             self.allocate()
         if not self.initialization_config_pushed:
@@ -742,8 +741,7 @@ class Brick(Annotation):
             The name of the variable.
 
         """
-        raise ValueError("No dimension information for {} available"
-                         .format(name))
+        raise ValueError(f"No dimension information for {name} available")
 
     def get_dims(self, names):
         """Get list of dimensions for a set of input/output variables.
@@ -763,11 +761,10 @@ class Brick(Annotation):
 
     def get_unique_path(self):
         """Returns unique path to this brick in the application graph."""
-        if self.parents:
-            parent = min(self.parents, key=attrgetter('name'))
-            return parent.get_unique_path() + [self]
-        else:
+        if not self.parents:
             return [self]
+        parent = min(self.parents, key=attrgetter('name'))
+        return parent.get_unique_path() + [self]
 
     def get_hierarchical_name(self, parameter, delimiter=BRICK_DELIMITER):
         """Return hierarhical name for a parameter.
@@ -790,8 +787,7 @@ class Brick(Annotation):
 
 def args_to_kwargs(args, f):
     arg_names, vararg_names, _, _ = inspect.getargspec(f)
-    return dict((arg_name, arg) for arg_name, arg
-                in zip(arg_names + [vararg_names], args))
+    return dict(zip(arg_names + [vararg_names], args))
 
 
 class LazyNone(object):
@@ -950,7 +946,7 @@ def application(*args, **kwargs):
     <blocks.bricks.base.Application object at ...>
 
     """
-    if not ((args and not kwargs) or (not args and kwargs)):
+    if (not args or kwargs) and (args or not kwargs):
         raise ValueError
     if args:
         application_function, = args
@@ -966,7 +962,7 @@ def application(*args, **kwargs):
 
 
 def _variable_name(brick_name, application_name, name):
-    return "{}_{}_{}".format(brick_name, application_name, name)
+    return f"{brick_name}_{application_name}_{name}"
 
 
 def copy_and_tag(variable, brick, call, role, application_name, name):

@@ -83,16 +83,18 @@ class TestSimpleGetBatchNormalizationUpdates(object):
         assert len(updates) == num_updates
         assert all(is_shared_variable(u[0]) for u in updates)
         # This order is somewhat arbitrary and implementation_dependent
-        means = set(u[0] for u in updates
-                    if has_roles(u[0], [BATCH_NORM_POPULATION_MEAN]))
-        stdevs = set(u[0] for u in updates
-                     if has_roles(u[0], [BATCH_NORM_POPULATION_STDEV]))
+        means = {
+            u[0] for u in updates if has_roles(u[0], [BATCH_NORM_POPULATION_MEAN])
+        }
+        stdevs = {
+            u[0] for u in updates if has_roles(u[0], [BATCH_NORM_POPULATION_STDEV])
+        }
         assert means.isdisjoint(stdevs)
-        assert len(set(get_brick(v) for v in means)) == num_bricks
+        assert len({get_brick(v) for v in means}) == num_bricks
         if not mean_only:
-            assert len(set(get_brick(v) for v in stdevs)) == num_bricks
+            assert len({get_brick(v) for v in stdevs}) == num_bricks
         else:
-            assert len(stdevs) == 0
+            assert not stdevs
 
     def test_get_batch_normalization_updates(self):
         """Test that get_batch_normalization_updates works as expected."""

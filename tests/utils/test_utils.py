@@ -62,9 +62,12 @@ class TestFindBricks(object):
         assert len(found) == 5
         assert self.mlp in found
         found.remove(self.mlp)
-        sequences = set(self.mlp.activations[0:2] +
-                        [self.mlp.activations[3],
-                         self.mlp.activations[3].children[0]])
+        sequences = set(
+            (
+                self.mlp.activations[:2]
+                + [self.mlp.activations[3], self.mlp.activations[3].children[0]]
+            )
+        )
         assert sequences == found
 
     def test_find_second_and_third_level(self):

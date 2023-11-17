@@ -92,15 +92,13 @@ class Convolutional(LinearLike):
         if getattr(self, 'use_bias', True):
             if self.tied_biases:
                 b = shared_floatx_nans((self.num_filters,), name='b')
-            else:
-                # this error is raised here instead of during initializiation
-                # because ConvolutionalSequence may specify the image size
-                if self.image_size == (None, None) and not self.tied_biases:
-                    raise ValueError('Cannot infer bias size without '
-                                     'image_size specified. If you use '
-                                     'variable image_size, you should use '
-                                     'tied_biases=True.')
+            elif self.image_size == (None, None):
+                raise ValueError('Cannot infer bias size without '
+                                 'image_size specified. If you use '
+                                 'variable image_size, you should use '
+                                 'tied_biases=True.')
 
+            else:
                 b = shared_floatx_nans(self.get_dim('output'), name='b')
             add_role(b, BIAS)
 
@@ -233,23 +231,22 @@ class ConvolutionalTranspose(Convolutional):
 
     @property
     def original_image_size(self):
-        if self._original_image_size is None:
-            if all(s is None for s in self.image_size):
-                raise ValueError("can't infer original_image_size, "
-                                 "no image_size set")
-            if isinstance(self.border_mode, tuple):
-                border = self.border_mode
-            elif self.border_mode == 'full':
-                border = tuple(k - 1 for k in self.filter_size)
-            elif self.border_mode == 'half':
-                border = tuple(k // 2 for k in self.filter_size)
-            else:
-                border = [0] * len(self.image_size)
-            tups = zip(self.image_size, self.step, self.filter_size, border,
-                       self.unused_edge)
-            return tuple(s * (i - 1) + k - 2 * p + u for i, s, k, p, u in tups)
-        else:
+        if self._original_image_size is not None:
             return self._original_image_size
+        if all(s is None for s in self.image_size):
+            raise ValueError("can't infer original_image_size, "
+                             "no image_size set")
+        if isinstance(self.border_mode, tuple):
+            border = self.border_mode
+        elif self.border_mode == 'full':
+            border = tuple(k - 1 for k in self.filter_size)
+        elif self.border_mode == 'half':
+            border = tuple(k // 2 for k in self.filter_size)
+        else:
+            border = [0] * len(self.image_size)
+        tups = zip(self.image_size, self.step, self.filter_size, border,
+                   self.unused_edge)
+        return tuple(s * (i - 1) + k - 2 * p + u for i, s, k, p, u in tups)
 
     @original_image_size.setter
     def original_image_size(self, value):
@@ -326,10 +323,14 @@ class Pooling(Initializable, Feedforward):
             with the last two dimensions downsampled.
 
         """
-        output = pool_2d(input_, self.pooling_size, stride=self.step,
-                         mode=self.mode, pad=self.padding,
-                         ignore_border=self.ignore_border)
-        return output
+        return pool_2d(
+            input_,
+            self.pooling_size,
+            stride=self.step,
+            mode=self.mode,
+            pad=self.padding,
+            ignore_border=self.ignore_border,
+        )
 
     def get_dim(self, name):
         if name == 'input_':

@@ -120,7 +120,7 @@ class MLP(FeedforwardSequence, Initializable):
         for i in range(len(activations)):
             linear = copy.deepcopy(self.prototype)
             name = self.prototype.__class__.__name__.lower()
-            linear.name = '{}_{}'.format(name, i)
+            linear.name = f'{name}_{i}'
             self.linear_transformations.append(linear)
         if not dims:
             dims = [None] * (len(activations) + 1)
@@ -147,10 +147,10 @@ class MLP(FeedforwardSequence, Initializable):
         self.dims[-1] = value
 
     def _push_allocation_config(self):
-        if not len(self.dims) - 1 == len(self.linear_transformations):
+        if len(self.dims) - 1 != len(self.linear_transformations):
             raise ValueError
         for input_dim, output_dim, layer in \
-                equizip(self.dims[:-1], self.dims[1:],
+                    equizip(self.dims[:-1], self.dims[1:],
                         self.linear_transformations):
             layer.input_dim = input_dim
             layer.output_dim = output_dim

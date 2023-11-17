@@ -72,7 +72,7 @@ class Parallel(Initializable):
         self.children = []
         for name in input_names:
             self.children.append(copy.deepcopy(self.prototype))
-            self.children[-1].name = "{}_{}".format(child_prefix, name)
+            self.children[-1].name = f"{child_prefix}_{name}"
 
     def _push_allocation_config(self):
         for input_dim, output_dim, child in \
@@ -349,5 +349,5 @@ class Merge(Parallel):
         return self.input_names
 
     def _push_allocation_config(self):
-        self.output_dims = [self.output_dim for input_name in self.input_names]
+        self.output_dims = [self.output_dim for _ in self.input_names]
         super(Merge, self)._push_allocation_config()

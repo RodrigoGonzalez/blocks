@@ -13,7 +13,7 @@ def test_dataset_evaluators():
     brick = TestBrick(name='test_brick')
     Y = brick.apply(X)
     graph = ComputationGraph([Y])
-    monitor_variables = [v for v in graph.auxiliary_variables]
+    monitor_variables = list(graph.auxiliary_variables)
     validator = DatasetEvaluator(monitor_variables)
 
     data = [numpy.arange(1, 5, dtype=theano.config.floatX).reshape(2, 2),

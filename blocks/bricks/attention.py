@@ -331,8 +331,9 @@ class SequenceContentAttention(GenericSequenceAttention, Initializable):
 
     def _push_allocation_config(self):
         self.state_transformers.input_dims = self.state_dims
-        self.state_transformers.output_dims = [self.match_dim
-                                               for name in self.state_names]
+        self.state_transformers.output_dims = [
+            self.match_dim for _ in self.state_names
+        ]
         self.attended_transformer.input_dim = self.attended_dim
         self.attended_transformer.output_dim = self.match_dim
         self.energy_computer.input_dim = self.match_dim
@@ -347,9 +348,9 @@ class SequenceContentAttention(GenericSequenceAttention, Initializable):
         # Broadcasting of transformed states should be done automatically
         match_vectors = sum(transformed_states.values(),
                             preprocessed_attended)
-        energies = self.energy_computer.apply(match_vectors).reshape(
-            match_vectors.shape[:-1], ndim=match_vectors.ndim - 1)
-        return energies
+        return self.energy_computer.apply(match_vectors).reshape(
+            match_vectors.shape[:-1], ndim=match_vectors.ndim - 1
+        )
 
     @application(outputs=['weighted_averages', 'weights'])
     def take_glimpses(self, attended, preprocessed_attended=None,
@@ -566,7 +567,7 @@ class AttentionRecurrent(AbstractAttentionRecurrent, Initializable):
         self.attended_name = attended_name
         self.attended_mask_name = attended_mask_name
 
-        self.preprocessed_attended_name = "preprocessed_" + self.attended_name
+        self.preprocessed_attended_name = f"preprocessed_{self.attended_name}"
 
         self._glimpse_names = self.attention.take_glimpses.outputs
         # We need to determine which glimpses are fed back.
@@ -611,14 +612,12 @@ class AttentionRecurrent(AbstractAttentionRecurrent, Initializable):
         states = dict_subset(kwargs, self._state_names, pop=True)
         glimpses = dict_subset(kwargs, self._glimpse_names, pop=True)
         glimpses_needed = dict_subset(glimpses, self.previous_glimpses_needed)
-        result = self.attention.take_glimpses(
+        return self.attention.take_glimpses(
             kwargs.pop(self.attended_name),
             kwargs.pop(self.preprocessed_attended_name, None),
             kwargs.pop(self.attended_mask_name, None),
-            **dict_union(states, glimpses_needed))
-        # At this point kwargs may contain additional items.
-        # e.g. AttentionRecurrent.transition.apply.contexts
-        return result
+            **dict_union(states, glimpses_needed)
+        )
 
     @take_glimpses.property('outputs')
     def take_glimpses_outputs(self):
@@ -658,10 +657,9 @@ class AttentionRecurrent(AbstractAttentionRecurrent, Initializable):
         sequences.update(self.distribute.apply(
             as_dict=True, **dict_subset(dict_union(sequences, glimpses),
                                         self.distribute.apply.inputs)))
-        current_states = self.transition.apply(
-            iterate=False, as_list=True,
-            **dict_union(sequences, kwargs))
-        return current_states
+        return self.transition.apply(
+            iterate=False, as_list=True, **dict_union(sequences, kwargs)
+        )
 
     @compute_states.property('outputs')
     def compute_states_outputs(self):

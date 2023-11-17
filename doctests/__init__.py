@@ -23,8 +23,7 @@ def setup(testobj):
 def load_tests(loader, tests, ignore):
     # This function loads doctests from all submodules and runs them
     # with the __future__ imports necessary for Python 2
-    for _, module, _ in pkgutil.walk_packages(path=blocks.__path__,
-                                              prefix=blocks.__name__ + '.'):
+    for _, module, _ in pkgutil.walk_packages(path=blocks.__path__, prefix=f'{blocks.__name__}.'):
         try:
             tests.addTests(doctest.DocTestSuite(
                 module=importlib.import_module(module), setUp=setup,
@@ -36,8 +35,10 @@ def load_tests(loader, tests, ignore):
     docs = []
     for root, _, filenames in os.walk(os.path.join(blocks.__path__[0],
                                                    '../docs')):
-        for doc in fnmatch.filter(filenames, '*.rst'):
-            docs.append(os.path.abspath(os.path.join(root, doc)))
+        docs.extend(
+            os.path.abspath(os.path.join(root, doc))
+            for doc in fnmatch.filter(filenames, '*.rst')
+        )
     tests.addTests(doctest.DocFileSuite(
         *docs, module_relative=False, setUp=setup,
         optionflags=doctest.IGNORE_EXCEPTION_DETAIL))

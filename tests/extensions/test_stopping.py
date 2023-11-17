@@ -59,8 +59,9 @@ class FinishIfNoImprovementAfterTester(unittest.TestCase):
         # and 'bananas' is not in the log's current row.
         which_callback = 'after_batch' if not epochs else 'after_epoch'
         if log_entry is None:
-            log_entry = notification_name + '_patience_' + (
-                'iterations' if not epochs else 'epochs')
+            log_entry = f'{notification_name}_patience_' + (
+                'iterations' if not epochs else 'epochs'
+            )
         # First is a new best.
         self.main_loop.log.current_row[notification_name] = True
         ext.do(which_callback)
@@ -126,15 +127,15 @@ class EarlyStoppingTester(unittest.TestCase):
         for value in loss_values:
             self.main_loop.log.advance(epochs)
             self.main_loop.log.current_row[key] = value
-            which_callback = 'after_{}'.format(['batch', 'epoch'][int(epochs)])
+            which_callback = f"after_{['batch', 'epoch'][int(epochs)]}"
             ext.dispatch(which_callback)
             yield (dict(self.main_loop.log.current_row))
 
     def check_run(self, ext, epochs, record_name):
-        patience_record = record_name + '_best_so_far_patience_' + (
+        patience_record = f'{record_name}_best_so_far_patience_' + (
             'epochs' if epochs else 'iterations'
         )
-        notification_name = record_name + '_best_so_far'
+        notification_name = f'{record_name}_best_so_far'
 
         log_entries = list(self.fake_training_run([9, 8, 7, 8, 7, 6, 7, 7, 7],
                                                   ext, epochs=epochs,

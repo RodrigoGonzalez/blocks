@@ -57,11 +57,9 @@ def test_uniform():
         assert weights.shape == shape
         assert weights.dtype == theano.config.floatX
         assert_allclose(weights.mean(), mean, atol=1e-2)
-        if width is not None:
-            std_ = width / numpy.sqrt(12)
-        else:
-            std_ = std
+        std_ = width / numpy.sqrt(12) if width is not None else std
         assert_allclose(std_, weights.std(), atol=1e-2)
+
     yield check_uniform, rng, 0, 0.05, None, (500, 600)
     yield check_uniform, rng, 0, None, 0.001, (600, 500)
     yield check_uniform, rng, 5, None, 0.004, (700, 300)
